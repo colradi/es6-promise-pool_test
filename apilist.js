@@ -26,7 +26,7 @@ var promiseProducer = function () {
     if(i <= numPages){
         votes_options.qs.start = i*40; // prepare paginations: 40, 80, 120, 160, ..
         console.log("DEBUG: Producing promise " + (i++) + " numPages: " + numPages);
-        retval = rp(votes_options).catch(function (err) {//download the first page..
+        retval = rp(votes_options).catch(function (err) {//capturar el error?
               console.log(" Error getting voters list from " + votes_url ); 
               return 5;
             });
