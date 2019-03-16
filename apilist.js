@@ -26,7 +26,11 @@ var promiseProducer = function () {
     if(i <= numPages){
         votes_options.qs.start = i*40; // prepare paginations: 40, 80, 120, 160, ..
         console.log("DEBUG: Producing promise " + (i++) + " numPages: " + numPages);
-        retval = rp(votes_options); //request paginated pages
+        retval = rp(votes_options).catch(function (err) {//download the first page..
+              console.log(" Error getting voters list from " + votes_url ); 
+              return 5;
+            });
+           //request paginated pages
     }
     return retval;
 }
@@ -40,7 +44,7 @@ var filter = null; //to be asigned by the module.exports functions before starti
 pool.addEventListener('fulfilled', function (event) { //{ target: thispool, data: { promise: X, result: X}}
     //console.log(event.data.result.total);
     numPages = Math.floor(event.data.result.total / 40); //Also 'result.page.totalVotes'
-    var data = filter(event.data.result.data);
+    //var data = filter(event.data.result.data);
     Array.prototype.push.apply(pages, event.data.result.data); //Merge the two arrays
     //console.log('Fulfilled: ' + event.data.result);
 })
@@ -58,10 +62,10 @@ pool.addEventListener('rejected', function (event) {
  * @param address Used to conform the final download URL
  * @param filterVoters  A function that receives an array of voters, filters them at will and returns them 
  */
-function getFilteredVoters(address, filterVoters){
+function getVoters(address){
   votes_options.qs.candidate = address;
-  filter = filterVoters;
-  // Start the pool.
+  //filter = filterVoters;
+  // Start the pool
   var poolPromise = pool.start();
 
   return poolPromise.then(function () {
@@ -73,11 +77,16 @@ function getFilteredVoters(address, filterVoters){
 
 }
 
-var filteredVoters = getFilteredVoters("TGzz8gjYiYRqpfmDwnLxfgPuLVNmpCswVp", function(arr){  //filter out voters with less than 1000 votes
+
+
+var filteredVoters = getVoters("TGzz8gjYiYRqpfmDwnLxfgPuLVNmpCswVp");
+
+/* 
+               var filteredVoters = getFilteredVoters("TGzz8gjYiYRqpfmDwnLxfgPuLVNmpCswVp", function(arr){  //filter out voters with less than 1000 votes
             arr.filter (x =>  x.votes > 1000);  //x is a voter according json from https://apilist.tronscan.org/api/vote?sort=-votes&limit=40&start=0&candidate=TGzz8gjYiYRqpfmDwnLxfgPuLVNmpCswVp
         }
   ).then(x => {  //console.log(JSON.stringify(filteredVoters)); 
-               });
+               }); */
 
 
 
